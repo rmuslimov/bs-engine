@@ -35,7 +35,7 @@
   Each query is list of tokens. Resultset for query is just intersection of resultset for each token.
   Result for all queries is trivial union."
   [query]
-  (let [elements (atom (re-seq-with-term query))
+  (let [elements (atom (re-seq-with-term (str "(" query ")")))
         oprts (atom [])
         opnds (atom [])]
     (while (seq @elements)
@@ -46,9 +46,10 @@
           :open (swap! oprts conj value)
           :close
           (let [[open-op op] (naive-split-atom oprts -2)
-                [tokenA tokenB] (naive-split-atom opnds -2)]
-            (when op
-              (swap! opnds conj (-perform op tokenA tokenB)))))))
+                [tokenA tokenB] (naive-split-atom opnds -2)
+                ;; if op is nil, it's single token (token)
+                v (if op (-perform op tokenA tokenB) tokenA)]
+            (swap! opnds conj v)))))
     (first @opnds)))
 
 ;; Operations with index (indexing, searching)
@@ -103,28 +104,26 @@
       (println err)
       ((get commands cmd) expr))))
 
-(defn read-with-prompt []
-  (print "bs-engine> ")
-  (flush)
-  (str/trim (read-line)))
-
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (loop [v (read-with-prompt)]
-    (when (not (contains? #{"quit" "q"} v))
+  (loop [v (read-line)]
+    (when (not (contains? #{"quit" "q" nil} v))
       (do
-        (process-command v)
-        (recur (read-with-prompt))))))
+        (process-command (str/trim v))
+        (recur (read-line))))))
+
 
 (comment
 
   @gin
   (index 1 "a" "b")
   (index 1 "c")
-  (-main)
 
+  (canonize-query "soup")
   (process-command "index 1 salt bubad")
-  (process-command "query salt")
+  (process-command "query soup")
+
+  (-main)
 
   )

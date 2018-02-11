@@ -1,3 +1,3 @@
 # bs-engine
 
-See problem.txt
+This just test project, see `problem.txt` for details.

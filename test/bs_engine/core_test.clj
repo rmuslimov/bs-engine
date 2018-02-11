@@ -28,5 +28,6 @@
     (is (= #{1 3} (search "salt & (butter | potato)")))
     (is (= #{1 3} (search "(butter | potato) & salt")))
 
+    (is (= #{3 2} (search "soup | sugar")))
     (is (= #{3} (search "soup")))
     ))
