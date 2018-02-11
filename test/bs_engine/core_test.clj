@@ -13,18 +13,6 @@
 
 (use-fixtures :each create-index)
 
-(deftest test-parsing-query
-  (testing "Check if parsing of query works as expected."
-    (is
-     (= (re-seq-with-term "a | (b & c)")
-        '({:term :operand, :value "a"}
-          {:term :operator, :value "|"}
-          {:term :open, :value "("}
-          {:term :operand, :value "b"}
-          {:term :operator, :value "&"}
-          {:term :operand, :value "c"}
-          {:term :close, :value ")"})))))
-
 (deftest test-canonize-query
   (testing "Query interpretation"
     (are [x y] (= x y)
@@ -39,4 +27,6 @@
     (is (= #{2} (search "eggs & flour")))
     (is (= #{1 3} (search "salt & (butter | potato)")))
     (is (= #{1 3} (search "(butter | potato) & salt")))
+
+    (is (= #{3} (search "soup")))
     ))

@@ -13,7 +13,7 @@ Examples:
 index 1 soup tomato cream salt
 index 2 cake sugar eggs flour sugar cocoa cream butter
 index 1 bread butter salt
-index 3 soup fish potato salt pepperxo
+index 3 soup fish potato salt pepper
 
 When the program successfully processes an index command, it should output
 
