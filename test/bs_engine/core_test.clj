@@ -20,7 +20,10 @@
       (canonize-query "a & b") #{["a" "b"]}
       (canonize-query "a & (( b & c ) | d)") #{["a" "d"] ["a" "b" "c"]}
       (canonize-query "a & ((( b & c ) & d) | e)") #{["a" "b" "c" "d"] ["a" "e"]}
-      )))
+
+      (canonize-query "a & ((b & c) | (d & e))") #{["a" "d" "e"] ["a" "b" "c"]})
+      (canonize-query "a & (b & c) | (d & e)") #{["d" "e"] ["a" "b" "c"]}
+      ))
 
 (deftest test-indexing-and-seaching
   (testing "whole flow..."

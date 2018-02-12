@@ -13,3 +13,10 @@
           {:term :operator, :value "&" :end 8}
           {:term :operand, :value "c" :end 10}
           {:term :close, :value ")" :end 11})))))
+
+(deftest test-validate-query-expr
+  (testing "Nested parenthesis."
+    (are [x] (nil? x)
+      (validate-expr "a & ((b & c) | (d & e))")
+      (validate-expr "a & (b & c) | (d & e)")
+    )))

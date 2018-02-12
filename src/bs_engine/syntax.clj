@@ -8,7 +8,7 @@
   {:open #{:open :operand}
    :operand #{:operator :close}
    :operator #{:operand :open}
-   :close #{:operator}})
+   :close #{:operator :close}})
 
 (defn with-term
   "Add more information to regex group returned by re-seq-with-term"
