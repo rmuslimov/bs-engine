@@ -41,7 +41,7 @@
 (defn validate-expr
   "Scan and check query for mistakes."
   [query]
-  (loop [[cur & rst] (re-seq-with-term query)
+  (loop [[cur & rst] (if query (re-seq-with-term (or query "")) [])
          remaining-closes 0]
     (let [next-element (-> rst first :term)
           expecting (->> cur :term (get rules))
@@ -51,8 +51,10 @@
             :open (inc remaining-closes)
             :close (dec remaining-closes)
             remaining-closes)]
-
       (cond
+        (nil? query)
+        "query error it's empty."
+
         ;; Unexpected end.
         (and (empty? rst) (not= remaining-closes 0))
         (format "query error\n%s\n%s"
@@ -77,15 +79,18 @@
 (defn validate-index
   "Scan index expression for mistakes."
   [line]
-  (let [[doc-id & tokens] (str/split line #" ")
+  (let [[doc-id & tokens] (str/split (or line "") #" ")
         err (cond
+              (nil? line)
+              "it's empty"
+
               (not (re-matches #"\d+" doc-id))
               (format "doc-id %s is not int." doc-id)
 
               (some nil? (map #(re-matches #"\w+" %) tokens))
               "some tokens are not AN+ value.")]
     (when err
-      (format "index error \"%s\"" err))))
+      (format "index error %s" err))))
 
 (comment
 

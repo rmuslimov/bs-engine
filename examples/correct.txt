@@ -2,9 +2,8 @@ index 1 soup tomato cream salt
 index 2 cake sugar eggs flour sugar cocoa cream butter
 index 1 bread butter salt
 index 3 soup fish potato salt pepper
-index aaa
 query butter
 query sugar
 query soup
 query (butter | potato) & salt
-query aaa |
+query cake & sugar | fish

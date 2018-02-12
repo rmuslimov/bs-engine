@@ -7,16 +7,7 @@
 (def gin (atom {}))
 (def raw-data (atom {}))
 
-(defn naive-split-atom
-  "Swaps atom value to (swap-fn a) and returns (take-fn a)."
-  [a n]
-  (let [take-fn (partial (if (>= n 0) take take-last) (Math/abs n))
-        swap-fn (partial (if (>= n 0) drop drop-last) (Math/abs n))
-        v (take-fn @a)]
-    (swap! a #(into [] (swap-fn %)))
-    v))
-
-;; Operation of & and | for queries
+;; Operation of & and | for query trees.
 
 (defmulti -perform (fn [op & r] op))
 (defmethod -perform "&" [_ treeA treeB]
@@ -26,6 +17,27 @@
 
 (defmethod -perform "|" [_ treeA treeB]
   (set/union treeA treeB))
+
+;; Operations. Functions used for query parsing and calculation.
+
+(defn operate
+  "Takes N+1 operands and N operators and perform calculation from left-to-right."
+  [tokens ops]
+  (let [pairs (partition 2 (interleave (rest tokens) ops))]
+    (reduce
+     (fn [rs [t op]] (-perform op rs t))
+     (first tokens)
+     pairs)))
+
+(defn drop-while-backward
+  "Like drop-while but starts from the end."
+  [pred s]
+  (->> s reverse (take-while pred) reverse (into [])))
+
+(defn take-while-backward
+  "Like take-while but starts from the end."
+  [pred s]
+  (->> s reverse (drop-while pred) reverse drop-last (into [])))
 
 ;; Main query parsing function
 
@@ -37,19 +49,22 @@
   [query]
   (let [elements (atom (re-seq-with-term (str "(" query ")")))
         oprts (atom [])
-        opnds (atom [])]
+        opnds (atom [])
+        not-opening? #(not= "(" %)]
     (while (seq @elements)
-      (let [[{:keys [term value end]}] (naive-split-atom elements 1)]
+      (let [{:keys [term value end]} (first @elements)]
+        (swap! elements rest)
         (case term
           :operand (swap! opnds conj #{[value]})
           :operator (swap! oprts conj value)
-          :open (swap! oprts conj value)
+          :open (do (swap! oprts conj value) (swap! opnds conj value))
           :close
-          (let [[open-op op] (naive-split-atom oprts -2)
-                [tokenA tokenB] (naive-split-atom opnds -2)
-                ;; if op is nil, it's single token (token)
-                v (if op (-perform op tokenA tokenB) tokenA)]
-            (swap! opnds conj v)))))
+          (let [tokens (drop-while-backward not-opening? @opnds)
+                ops (drop-while-backward not-opening? @oprts)
+                new-v (operate tokens ops)]
+            (swap! opnds #(take-while-backward not-opening? %))
+            (swap! oprts #(take-while-backward not-opening? %))
+            (swap! opnds conj new-v)))))
     (first @opnds)))
 
 ;; Operations with index (indexing, searching)
@@ -116,11 +131,13 @@
 
 (comment
 
+  (process-command "query")
+  (validate-index nil)
   @gin
   (index 1 "a" "b")
   (index 1 "c")
 
-  (canonize-query "soup")
+  (canonize-query "soup & tree | bob & (alice & eva)")
   (process-command "index 1 salt bubad")
   (process-command "query soup")
 

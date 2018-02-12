@@ -7,5 +7,5 @@
   :main ^:skip-aot bs-engine.core
   :target-path "target/%s"
   :profiles {:dev
-             {:source-paths ["dev" "test"]}
+             {:source-paths ["test"]}
              :uberjar {:aot :all}})
